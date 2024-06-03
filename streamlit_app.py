@@ -2,39 +2,34 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+from pint import UnitRegistry
 
-"""
-# Welcome to Streamlit!
+ureg = UnitRegistry()
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+st.write("# Supraparticle calculators")
+col1, col2 = st.columns(2)
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+with col1:
+    st.write("## Input")
+    d_droplet = st.number_input("Diameter of the droplet (µm)", 1, 1000, 100)
+    d_particle = st.number_input("Particle diameter (nm)", 1, d_droplet*1000, 300)
+with col2:
+    st.write("## Volume fractions")
+    phi_i = st.number_input("Initial volume fraction", 0.001, .99, 0.03, format="%.3f")
+    phi_f = st.number_input("Final volume fraction", phi_i, 1.0, 0.688, format="%.3f")
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+st.write("---")
+st.write("## Output")
+d_droplet_um = d_droplet  * ureg.µm
+d_particle_nm = d_particle * ureg.nm
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+V_particle = np.pi / 6 * d_particle_nm**3
+V_droplet = np.pi / 6 * d_droplet_um**3
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+N_particle = phi_i * V_droplet / V_particle
+V_droplet_final = N_particle * V_particle/phi_f
+d_droplet_final = (6 * V_droplet_final / np.pi)**(1/3)
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+st.write(f"### Number of particles: {N_particle.to(ureg.dimensionless).magnitude:.0f}")
+st.write(f"### Final droplet diameter: {d_droplet_final.to(ureg.µm).magnitude:.3f} µm")
