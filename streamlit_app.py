@@ -12,8 +12,8 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.write("## Input")
-    d_droplet = st.number_input("Diameter of the droplet (µm)", 1, 1000, 100)
-    d_particle = st.number_input("Particle diameter (nm)", 1, d_droplet*1000, 300)
+    d_particle = st.number_input("Particle diameter (nm)", 1, 5000, 300)
+    d_droplet = st.number_input("Diameter of the droplet (µm)", np.ceil(d_particle/1000.).astype(int), 1000, 100)
 with col2:
     st.write("## Volume fractions")
     phi_i = st.number_input("Initial volume fraction", 0.001, .99, 0.03, format="%.3f")
